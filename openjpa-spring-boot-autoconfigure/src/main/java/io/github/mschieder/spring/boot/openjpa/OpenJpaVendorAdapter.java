@@ -16,13 +16,9 @@
 
 package io.github.mschieder.spring.boot.openjpa;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.spi.PersistenceProvider;
-
 import org.apache.openjpa.persistence.OpenJPAEntityManagerFactorySPI;
 import org.apache.openjpa.persistence.OpenJPAEntityManagerSPI;
 import org.apache.openjpa.persistence.PersistenceProviderImpl;
@@ -30,6 +26,9 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.boot.logging.LoggingSystemFactory;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * {@link org.springframework.orm.jpa.JpaVendorAdapter} implementation for Apache OpenJPA.

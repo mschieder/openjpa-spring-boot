@@ -51,12 +51,12 @@ class PersonRepositoryTest {
     }
 
     @Test
-    void testNativeQuery(){
+    void testNativeQuery() {
         assertThat(personRepository.firstNames()).containsExactly("John");
     }
 
     @Test
-    void testNativeQueryProjection(){
+    void testNativeQueryProjection() {
         assertThat(personRepository.firstNamesProjection()).isNotEmpty();
     }
 }

@@ -6,6 +6,7 @@ provides a spring-boot starter with autoconfiguration for OpenJPA 4.0.x
 * includes the abandoned spring-framework JPA integration (OpenJpaVendorAdapter and OpenJpaDialect) from Spring 4.3.x
 * autoconfiguration and customization options like spring-boot's hibernate integration
 * default logging configuration for slf4j
+* basic Tuple result support (custom projection with native queries)
 
 ## usage 
 add the dependency to openjpa-spring-boot-starter in your spring-boot app
