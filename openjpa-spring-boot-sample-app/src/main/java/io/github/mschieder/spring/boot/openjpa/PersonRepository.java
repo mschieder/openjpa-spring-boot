@@ -21,5 +21,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     @Query(nativeQuery = true, value = "SELECT DISTINCT FIRSTNAME FROM PERSON ORDER BY FIRSTNAME ASC")
     List<Firstname> firstNamesProjection();
 
+    @Query(nativeQuery = true, value = "SELECT DISTINCT FIRSTNAME FROM PERSON WHERE LASTNAME = ?1 ORDER BY FIRSTNAME ASC")
+    List<Firstname> findByLastnameNative(String lastname);
 
 }

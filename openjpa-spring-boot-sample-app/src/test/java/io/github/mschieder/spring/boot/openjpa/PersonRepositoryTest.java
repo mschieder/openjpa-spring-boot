@@ -2,27 +2,17 @@ package io.github.mschieder.spring.boot.openjpa;
 
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Example;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-class PersonRepositoryTest {
 
-    @Autowired
-    private PersonRepository personRepository;
+class PersonRepositoryTest extends TestBase {
+
 
     public interface Lastname {
         String getLastname();
-    }
-
-    @BeforeEach
-    void givenJohnDoe() {
-        personRepository.save(new Person("John", "Doe"));
     }
 
     @AfterEach
@@ -58,5 +48,10 @@ class PersonRepositoryTest {
     @Test
     void testNativeQueryProjection() {
         assertThat(personRepository.firstNamesProjection()).isNotEmpty();
+    }
+
+    @Test
+    void testNativeQueryWithPositionalParameters() {
+        assertThat(personRepository.findByLastnameNative("Doe")).isNotEmpty();
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.aot.hint.TypeHint;
 import org.springframework.aot.hint.TypeHint.Builder;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration;
@@ -72,8 +73,9 @@ import java.util.function.Supplier;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(OpenJpaProperties.class)
 //@ConditionalOnSingleCandidate(DataSource.class)
- class OpenJpaConfiguration extends JpaBaseConfiguration {
-
+class OpenJpaConfiguration extends JpaBaseConfiguration {
+    @Autowired
+    private OpenJpaProperties openJpaProperties;
     private static final Log logger = LogFactory.getLog(OpenJpaConfiguration.class);
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
@@ -231,22 +233,18 @@ import java.util.function.Supplier;
 
     }
 
-    /**
-     * support for Tuple as native query result.
-     */
     @Bean
     @Primary
     @Override
     @ConditionalOnMissingBean({LocalContainerEntityManagerFactoryBean.class, EntityManagerFactory.class})
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder factoryBuilder,
                                                                        PersistenceManagedTypes persistenceManagedTypes) {
-
         var defined = super.entityManagerFactory(factoryBuilder, persistenceManagedTypes);
-
-        return new ProxiedLocalContainerEntityManagerFactoryBean(defined);
-
+        if (openJpaProperties.isNativeQueryReturnPositionalParameters() || openJpaProperties.isTupleResultClassSupport()) {
+            return new ProxiedLocalContainerEntityManagerFactoryBean(defined, openJpaProperties);
+        } else {
+            return defined;
+        }
     }
-
-
 }
 

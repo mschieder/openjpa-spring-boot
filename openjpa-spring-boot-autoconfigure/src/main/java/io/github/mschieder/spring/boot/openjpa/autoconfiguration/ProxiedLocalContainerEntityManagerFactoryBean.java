@@ -6,7 +6,10 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 public class ProxiedLocalContainerEntityManagerFactoryBean extends LocalContainerEntityManagerFactoryBean {
 
-    public ProxiedLocalContainerEntityManagerFactoryBean(LocalContainerEntityManagerFactoryBean defined) {
+    private final OpenJpaProperties openJpaProperties;
+
+    public ProxiedLocalContainerEntityManagerFactoryBean(LocalContainerEntityManagerFactoryBean defined, OpenJpaProperties openJpaProperties) {
+       this.openJpaProperties = openJpaProperties;
         setBootstrapExecutor(defined.getBootstrapExecutor());
         setDataSource(defined.getDataSource());
         setJpaPropertyMap(defined.getJpaPropertyMap());
@@ -17,7 +20,7 @@ public class ProxiedLocalContainerEntityManagerFactoryBean extends LocalContaine
     @Override
     protected EntityManagerFactory createEntityManagerFactoryProxy(EntityManagerFactory emf) {
         var springProxy = super.createEntityManagerFactoryProxy(emf);
-        return OpenjpaEntityManagerFactoryCreator.create(springProxy);
+        return OpenjpaEntityManagerFactoryCreator.create(springProxy, openJpaProperties);
     }
 
 }

@@ -18,12 +18,39 @@ public class OpenJpaProperties {
      */
     private String ddlAuto;
 
+    /**
+     * Query.getParameters(): returns of the positional parameters of a native query. [spec: "This method is not required to be supported for native queries."] (default: true)
+     */
+    private boolean nativeQueryReturnPositionalParameters = true;
+
+    /**
+     * adds basic Tuple support for EntityManager.createQuery() and EntityManager.createNativeQuery() [spec: "only for CriteriaQueries"] (default: true)
+     */
+    private boolean tupleResultClassSupport = true;
+
+
     public String getDdlAuto() {
         return this.ddlAuto;
     }
 
     public void setDdlAuto(String ddlAuto) {
         this.ddlAuto = ddlAuto;
+    }
+
+    public boolean isNativeQueryReturnPositionalParameters() {
+        return nativeQueryReturnPositionalParameters;
+    }
+
+    public void setNativeQueryReturnPositionalParameters(boolean nativeQueryReturnPositionalParameters) {
+        this.nativeQueryReturnPositionalParameters = nativeQueryReturnPositionalParameters;
+    }
+
+    public boolean isTupleResultClassSupport() {
+        return tupleResultClassSupport;
+    }
+
+    public void setTupleResultClassSupport(boolean tupleResultClassSupport) {
+        this.tupleResultClassSupport = tupleResultClassSupport;
     }
 
     public Map<String, Object> determineOpenJpaProperties(Map<String, String> jpaProperties,
