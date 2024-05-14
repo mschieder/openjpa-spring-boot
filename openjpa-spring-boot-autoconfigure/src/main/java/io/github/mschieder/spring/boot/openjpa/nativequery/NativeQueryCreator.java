@@ -17,6 +17,8 @@ public class NativeQueryCreator {
     private static class Handler implements InvocationHandler {
 
         private final QueryImpl<?> query;
+        private static final Pattern POSITIONAL_PATTERN = Pattern.compile("\\?(\\d+)");
+
 
         public Handler(QueryImpl<?> query) {
             this.query = query;
@@ -25,19 +27,19 @@ public class NativeQueryCreator {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             try {
+                Object result;
                 if ("getParameters".equals(method.getName())) {
                     Set<Parameter<?>> parameters = new HashSet<>();
-                    var queryString = query.getQueryString();
-                    Pattern p = Pattern.compile("\\?(\\d+)");
-                    var matcher = p.matcher(queryString);
+                    var matcher = POSITIONAL_PATTERN.matcher(query.getQueryString());
                     while (matcher.find()) {
                         var position = Integer.valueOf(matcher.group(1));
                         parameters.add(new ParameterImpl<>(position, Void.class));
                     }
-                    return parameters;
+                    result = parameters;
+                } else {
+                    result = method.invoke(query, args);
                 }
-
-                return method.invoke(query, args);
+                return result;
             } catch (InvocationTargetException ex) {
                 throw ex.getTargetException();
             }
