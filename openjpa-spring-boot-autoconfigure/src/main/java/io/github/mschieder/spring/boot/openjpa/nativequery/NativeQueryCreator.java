@@ -36,6 +36,8 @@ public class NativeQueryCreator {
                         parameters.add(new ParameterImpl<>(position, Void.class));
                     }
                     result = parameters;
+                } else if ("unwrap".equals(method.getName())) {
+                    return Proxy.isProxyClass(query.getClass()) ? query.unwrap((Class<?>) args[0]) : query;
                 } else {
                     result = method.invoke(query, args);
                 }

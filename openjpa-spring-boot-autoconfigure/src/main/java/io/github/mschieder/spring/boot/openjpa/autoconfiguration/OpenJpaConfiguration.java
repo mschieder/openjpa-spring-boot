@@ -41,6 +41,7 @@ import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jndi.JndiLocatorDelegate;
@@ -73,6 +74,8 @@ import java.util.function.Supplier;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(OpenJpaProperties.class)
 //@ConditionalOnSingleCandidate(DataSource.class)
+@ComponentScan("com.atomikos.spring") //scan a possible atomikos-jta-autoconfig
+
 class OpenJpaConfiguration extends JpaBaseConfiguration {
     @Autowired
     private OpenJpaProperties openJpaProperties;
@@ -150,8 +153,22 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
     }
 
     private void configureJtaPlatform(Map<String, Object> vendorProperties) throws LinkageError {
-//        JtaTransactionManager jtaTransactionManager = getJtaTransactionManager();
-//        // Make sure Hibernate doesn't attempt to auto-detect a JTA platform
+        JtaTransactionManager jtaTransactionManager = getJtaTransactionManager();
+
+        if (ClassUtils.isPresent("com.atomikos.icatch.jta.TransactionManagerImp", this.getClass().getClassLoader())) {
+            //atomikos
+            vendorProperties.put("openjpa.ManagedRuntime", "invocation(TransactionManagerMethod=com.atomikos.icatch.jta.TransactionManagerImp.getTransactionManager)");
+            // https://openjpa.apache.org/builds/3.2.2/apache-openjpa/docs/#ref_guide_sequence
+            // #int TYPE_DEFAULT = 0;
+            // #int TYPE_NONTRANSACTIONAL = 1;
+            // #int TYPE_TRANSACTIONAL = 2;
+            // #int TYPE_CONTIGUOUS = 3;
+            // #table = TableJDBCSeq
+            vendorProperties.put("openjpa.Sequence", "type=2");
+        }
+
+
+        // Make sure Hibernate doesn't attempt to auto-detect a JTA platform
 //        if (jtaTransactionManager == null) {
 //            vendorProperties.put(JTA_PLATFORM, getNoJtaPlatformManager());
 //        }
@@ -160,6 +177,7 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
 //        else if (!runningOnWebSphere()) {
 //            configureSpringJtaPlatform(vendorProperties, jtaTransactionManager);
 //        }
+
     }
 
     private void configureProviderDisablesAutocommit(Map<String, Object> vendorProperties) {

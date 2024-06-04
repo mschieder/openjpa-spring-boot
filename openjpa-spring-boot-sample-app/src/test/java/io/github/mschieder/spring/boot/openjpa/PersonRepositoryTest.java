@@ -3,7 +3,6 @@ package io.github.mschieder.spring.boot.openjpa;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,12 +26,6 @@ class PersonRepositoryTest extends TestBase {
 
         String getLastname();
     }
-
-    @AfterEach
-    void tearDown() {
-        personRepository.deleteAll();
-    }
-
 
     @Nested
     class FindByExampleTests {

@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 /**
- * {@link EnableAutoConfiguration Auto-configuration} for Hibernate JPA.
+ * {@link EnableAutoConfiguration Auto-configuration} for OpenJPA.
  *
  * @author Phillip Webb
  * @author Josh Long
