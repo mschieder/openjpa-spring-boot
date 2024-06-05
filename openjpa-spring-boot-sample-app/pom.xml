@@ -140,5 +140,29 @@
                 </resources>
             </build>
         </profile>
+        <profile>
+            <id>jta-narayana</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>dev.snowdrop</groupId>
+                    <artifactId>narayana-spring-boot-starter</artifactId>
+                    <version>3.1.1</version>
+                </dependency>
+
+            </dependencies>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources-jta</directory>
+                    </resource>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                    </resource>
+                </resources>
+            </build>
+        </profile>
     </profiles>
 </project>

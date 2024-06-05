@@ -35,7 +35,6 @@ import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.jdbc.SchemaManagementProvider;
 import org.springframework.boot.jdbc.metadata.CompositeDataSourcePoolMetadataProvider;
-import org.springframework.boot.jdbc.metadata.DataSourcePoolMetadata;
 import org.springframework.boot.jdbc.metadata.DataSourcePoolMetadataProvider;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
@@ -75,6 +74,8 @@ import java.util.function.Supplier;
 @EnableConfigurationProperties(OpenJpaProperties.class)
 //@ConditionalOnSingleCandidate(DataSource.class)
 @ComponentScan("com.atomikos.spring") //scan a possible atomikos-jta-autoconfig
+@ComponentScan("dev.snowdrop.boot.narayana.autoconfigure") //scan a possible atomikos-jta-autoconfig
+
 
 class OpenJpaConfiguration extends JpaBaseConfiguration {
     @Autowired
@@ -82,8 +83,6 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
     private static final Log logger = LogFactory.getLog(OpenJpaConfiguration.class);
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
-
-    private static final String PROVIDER_DISABLES_AUTOCOMMIT = "hibernate.connection.provider_disables_autocommit";
 
     /**
      * {@code NoJtaPlatform} implementations for various Hibernate versions.
@@ -143,28 +142,21 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
 
     @Override
     protected void customizeVendorProperties(Map<String, Object> vendorProperties) {
-        super.customizeVendorProperties(vendorProperties);
-        if (!vendorProperties.containsKey(JTA_PLATFORM)) {
+        if (isJta()) {
             configureJtaPlatform(vendorProperties);
-        }
-        if (!vendorProperties.containsKey(PROVIDER_DISABLES_AUTOCOMMIT)) {
-            configureProviderDisablesAutocommit(vendorProperties);
         }
     }
 
     private void configureJtaPlatform(Map<String, Object> vendorProperties) throws LinkageError {
-        JtaTransactionManager jtaTransactionManager = getJtaTransactionManager();
-
+        // https://openjpa.apache.org/builds/3.2.2/apache-openjpa/docs/#ref_guide_sequence
         if (ClassUtils.isPresent("com.atomikos.icatch.jta.TransactionManagerImp", this.getClass().getClassLoader())) {
             //atomikos
             vendorProperties.put("openjpa.ManagedRuntime", "invocation(TransactionManagerMethod=com.atomikos.icatch.jta.TransactionManagerImp.getTransactionManager)");
-            // https://openjpa.apache.org/builds/3.2.2/apache-openjpa/docs/#ref_guide_sequence
-            // #int TYPE_DEFAULT = 0;
-            // #int TYPE_NONTRANSACTIONAL = 1;
-            // #int TYPE_TRANSACTIONAL = 2;
-            // #int TYPE_CONTIGUOUS = 3;
-            // #table = TableJDBCSeq
-            vendorProperties.put("openjpa.Sequence", "type=2");
+            vendorProperties.put("openjpa.ConnectionFactoryMode", "managed");
+        } else if (ClassUtils.isPresent("com.arjuna.ats.jta.TransactionManager", this.getClass().getClassLoader())) {
+            //narayana
+            vendorProperties.put("openjpa.ManagedRuntime", "invocation(TransactionManagerMethod=com.arjuna.ats.jta.TransactionManager.transactionManager)");
+            vendorProperties.put("openjpa.ConnectionFactoryMode", "managed");
         }
 
 
@@ -178,17 +170,6 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
 //            configureSpringJtaPlatform(vendorProperties, jtaTransactionManager);
 //        }
 
-    }
-
-    private void configureProviderDisablesAutocommit(Map<String, Object> vendorProperties) {
-        if (isDataSourceAutoCommitDisabled() && !isJta()) {
-            vendorProperties.put(PROVIDER_DISABLES_AUTOCOMMIT, "true");
-        }
-    }
-
-    private boolean isDataSourceAutoCommitDisabled() {
-        DataSourcePoolMetadata poolMetadata = this.poolMetadataProvider.getDataSourcePoolMetadata(getDataSource());
-        return poolMetadata != null && Boolean.FALSE.equals(poolMetadata.getDefaultAutoCommit());
     }
 
     private boolean runningOnWebSphere() {
