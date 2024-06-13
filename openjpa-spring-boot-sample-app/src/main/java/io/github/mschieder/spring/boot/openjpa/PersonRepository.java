@@ -1,5 +1,6 @@
 package io.github.mschieder.spring.boot.openjpa;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -29,5 +30,20 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     @Query(nativeQuery = true, value = "SELECT DISTINCT FIRSTNAME, LASTNAME FROM PERSON WHERE LASTNAME = ?1 ORDER BY FIRSTNAME ASC")
     <R> List<R> findByLastnameNative(String lastname, Class<R> resultClass);
 
+    @EntityGraph(attributePaths = "address")
+    @Query(value = "select p from Person p where p.lastname = :lastname")
+    Person findByLastnameAdhocFetchGraph(String lastname);
+
+    @EntityGraph("Person.adr")
+    @Query(value = "select p from Person p where p.lastname = :lastname")
+    Person findByLastnameNamedFetchGraph(String lastname);
+
+    @EntityGraph(attributePaths = "address", type = EntityGraph.EntityGraphType.LOAD)
+    @Query(value = "select p from Person p where p.lastname = :lastname")
+    Person findByLastnameAdhocLoadGraph(String lastname);
+
+    @EntityGraph(value = "Person.adr", type = EntityGraph.EntityGraphType.LOAD)
+    @Query(value = "select p from Person p where p.lastname = :lastname")
+    Person findByLastnameNamedLoadGraph(String lastname);
 
 }

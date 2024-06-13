@@ -1,12 +1,20 @@
 package io.github.mschieder.spring.boot.openjpa;
 
 
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
+import org.springframework.test.context.transaction.TestTransaction;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -148,6 +156,81 @@ class PersonRepositoryTest extends TestBase {
                 assertThat(name.getFirstname()).isEqualTo("John");
                 assertThat(name.getLastname()).isEqualTo("Doe");
             });
+        }
+
+    }
+
+    @Autowired
+    EntityManager entityManager;
+
+    @Nested
+    @Transactional
+    class EntityGraphTest {
+
+        @BeforeEach
+        void setup() {
+            // ensure, that all caches are cleared
+            entityManager.clear();
+        }
+
+        @Test
+        void testAdhocFetchGraph_Ok() {
+            var johnDoe = personRepository.findByLastnameAdhocFetchGraph("Doe");
+            TestTransaction.end();
+            assertAttributeLoaded(johnDoe.getAddress()::getStreet);
+            assertAttributeNotLoaded(johnDoe::getOrders);
+        }
+
+
+        @Test
+        void testNamedFetchGraph_Ok() {
+            var johnDoe = personRepository.findByLastnameNamedFetchGraph("Doe");
+            TestTransaction.end();
+            assertAttributeLoaded(johnDoe.getAddress()::getStreet);
+            assertAttributeNotLoaded(johnDoe::getOrders);
+        }
+
+        @Test
+        void testAdhocLoadGraph_Ok() {
+            var johnDoe = personRepository.findByLastnameAdhocLoadGraph("Doe");
+            TestTransaction.end();
+            assertAttributeLoaded(johnDoe.getAddress()::getStreet);
+            assertAttributeLoaded(johnDoe::getOrders);
+        }
+
+
+        @Test
+        void testNamedLoadGraph_Ok() {
+            var johnDoe = personRepository.findByLastnameNamedLoadGraph("Doe");
+            TestTransaction.end();
+            assertAttributeLoaded(johnDoe.getAddress()::getStreet);
+            assertAttributeLoaded(johnDoe::getOrders);
+        }
+
+        void assertAttributeLoaded(Supplier<?> getter) {
+            var value = getter.get();
+            if (value instanceof Collection<?> c) {
+                assertThat(c.size()).isNotNegative();
+            }
+            assertThat(getter.get()).isNotNull();
+        }
+
+        void assertAttributeNotLoaded(Supplier<?> getter) {
+            Object value = null;
+            try {
+                value = getter.get();
+                if (value instanceof Collection<?> c) {
+                    assertThat(c).isEmpty();
+                }
+            } catch (RuntimeException e) {
+                //LazyInitializaionException
+                if ("org.hibernate.LazyInitializationException".equals(e.getClass().getName())) {
+                    value = null;
+                } else {
+                    throw e;
+                }
+            }
+            assertThat(value).isNull();
         }
     }
 }

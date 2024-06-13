@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
+
 @SpringBootTest
 @Transactional
 public abstract class TestBase {
@@ -14,7 +16,11 @@ public abstract class TestBase {
     @BeforeEach
     void givenJohnDoe() {
         personRepository.deleteAll();
-        personRepository.save(new Person("John", "Doe"));
+        var person = new Person("John", "Doe")
+                .addOrder(new ShoppingOrder(BigDecimal.TEN, "EUR"))
+                .addOrder(new ShoppingOrder(BigDecimal.ONE, "USD"));
+        person.setAddress(new Address("Amphitheatre Parkway", "Mountain View"));
+        personRepository.saveAndFlush(person);
     }
 
 }

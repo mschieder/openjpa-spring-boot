@@ -17,6 +17,7 @@ package io.github.mschieder.spring.boot.openjpa.autoconfiguration;
 
 
 import io.github.mschieder.spring.boot.openjpa.OpenJpaVendorAdapter;
+import io.github.mschieder.spring.boot.openjpa.entitygraph.EntityGraphFactory;
 import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ import org.springframework.boot.orm.jpa.hibernate.SpringJtaPlatform;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jndi.JndiLocatorDelegate;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -79,7 +81,12 @@ import java.util.function.Supplier;
 
 class OpenJpaConfiguration extends JpaBaseConfiguration {
     @Autowired
+    @Lazy
+    private EntityGraphFactory entityGraphFactory;
+
+    @Autowired
     private OpenJpaProperties openJpaProperties;
+
     private static final Log logger = LogFactory.getLog(OpenJpaConfiguration.class);
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
@@ -240,10 +247,15 @@ class OpenJpaConfiguration extends JpaBaseConfiguration {
                                                                        PersistenceManagedTypes persistenceManagedTypes) {
         var defined = super.entityManagerFactory(factoryBuilder, persistenceManagedTypes);
         if (openJpaProperties.isNativeQueryReturnPositionalParameters() || openJpaProperties.isTupleResultClassSupport()) {
-            return new ProxiedLocalContainerEntityManagerFactoryBean(defined, openJpaProperties);
+            return new ProxiedLocalContainerEntityManagerFactoryBean(defined, entityGraphFactory, openJpaProperties);
         } else {
             return defined;
         }
+    }
+
+    @Bean
+    public EntityGraphFactory entityGraphManager(EntityManagerFactory entityManagerFactory) {
+        return new EntityGraphFactory(entityManagerFactory);
     }
 }
 

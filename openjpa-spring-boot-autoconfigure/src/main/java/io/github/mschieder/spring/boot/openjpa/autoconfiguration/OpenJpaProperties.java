@@ -28,6 +28,11 @@ public class OpenJpaProperties {
      */
     private boolean tupleResultClassSupport = true;
 
+    /**
+     * adds JPA 2.1 support for Entity Graphs (default: true)
+     */
+    private boolean entityGraphSupport = true;
+
 
     public String getDdlAuto() {
         return this.ddlAuto;
@@ -51,6 +56,14 @@ public class OpenJpaProperties {
 
     public void setTupleResultClassSupport(boolean tupleResultClassSupport) {
         this.tupleResultClassSupport = tupleResultClassSupport;
+    }
+
+    public boolean isEntityGraphSupport() {
+        return entityGraphSupport;
+    }
+
+    public void setEntityGraphSupport(boolean entityGraphSupport) {
+        this.entityGraphSupport = entityGraphSupport;
     }
 
     public Map<String, Object> determineOpenJpaProperties(Map<String, String> jpaProperties,

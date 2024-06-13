@@ -7,6 +7,7 @@ provides a spring-boot starter with autoconfiguration for OpenJPA 4.0.x
 * autoconfiguration and customization options like spring-boot's hibernate integration
 * default logging configuration for slf4j
 * basic Tuple result support (custom projection with native queries)
+* JPA 2.1 entity graph support
 
 ## usage 
 add the dependency to openjpa-spring-boot-starter in your spring-boot app
