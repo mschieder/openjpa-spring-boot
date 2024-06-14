@@ -2,40 +2,32 @@ package io.github.mschieder.spring.boot.openjpa.entitygraph;
 
 import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Subgraph;
 import jakarta.persistence.metamodel.Attribute;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-public class SimpleEntityGraph<T> implements EntityGraph<T> {
+public class SimpleEntityGraph<T> extends AbstractGraph<T> implements EntityGraph<T> {
 
-    private final Set<AttributeNode<?>> attributeNodes = new HashSet<>();
-    private final Class<T> entityRootType;
     private final String name;
 
-    public SimpleEntityGraph(Class<T> entityRootType) {
-        this(entityRootType, null);
+    public SimpleEntityGraph(Class<T> entityRootType, EntityManagerFactory entityManagerFactory) {
+        this(entityRootType, null, entityManagerFactory);
     }
 
-    public SimpleEntityGraph(Class<T> entityRootType, String name) {
-        this.entityRootType = entityRootType;
+    public SimpleEntityGraph(Class<T> entityRootType, String name, EntityManagerFactory entityManagerFactory) {
+        super(entityRootType, entityManagerFactory);
         this.name = name;
     }
 
     public SimpleEntityGraph(SimpleEntityGraph<T> graph) {
-        this.name = graph.name;
-        this.entityRootType = graph.entityRootType;
-        this.attributeNodes.addAll(graph.attributeNodes);
+        this(graph, graph.name);
     }
 
     public SimpleEntityGraph(SimpleEntityGraph<T> graph, String name) {
-        this.name = name;
-        this.entityRootType = graph.entityRootType;
+        this(graph.entityRootType, name, graph.entityManagerFactory);
         this.attributeNodes.addAll(graph.attributeNodes);
     }
 
@@ -46,37 +38,13 @@ public class SimpleEntityGraph<T> implements EntityGraph<T> {
 
     @Override
     public void addAttributeNodes(String... attributeName) {
-        Arrays.stream(attributeName)
-                .map(SimpleAttributeNode::new)
-                .map(AttributeNode.class::cast)
-                .forEach(attributeNodes::add);
+        super.addAttributeNodes(attributeName);
     }
 
+    @SafeVarargs
     @Override
-    public void addAttributeNodes(Attribute<T, ?>... attribute) {
-        addAttributeNodes(Arrays.stream(attribute)
-                .map(Attribute::getName)
-                .toArray(String[]::new));
-    }
-
-    @Override
-    public <X> Subgraph<X> addSubgraph(Attribute<T, X> attribute) {
-        return null;
-    }
-
-    @Override
-    public <X> Subgraph<? extends X> addSubgraph(Attribute<T, X> attribute, Class<? extends X> type) {
-        return null;
-    }
-
-    @Override
-    public <X> Subgraph<X> addSubgraph(String attributeName) {
-        return null;
-    }
-
-    @Override
-    public <X> Subgraph<X> addSubgraph(String attributeName, Class<X> type) {
-        return null;
+    public final void addAttributeNodes(Attribute<T, ?>... attribute) {
+        super.addAttributeNodes(attribute);
     }
 
     @Override
@@ -106,7 +74,7 @@ public class SimpleEntityGraph<T> implements EntityGraph<T> {
 
     @Override
     public List<AttributeNode<?>> getAttributeNodes() {
-        return new ArrayList<>(attributeNodes);
+        return super.getAttributeNodes();
     }
 
     public Class<T> getEntityRootType() {

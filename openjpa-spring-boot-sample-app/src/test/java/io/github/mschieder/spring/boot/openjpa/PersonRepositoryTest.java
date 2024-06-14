@@ -191,6 +191,15 @@ class PersonRepositoryTest extends TestBase {
         }
 
         @Test
+        void testNamedFetchGraphWithSubGraph_Ok() {
+            var johnDoe = personRepository.findByLastnameNamedFetchGraphWithSubGraph("Doe");
+            TestTransaction.end();
+            assertAttributeLoaded(johnDoe.getAddress()::getStreet);
+            assertAttributeLoaded(johnDoe::getOrders);
+            johnDoe.getOrders().forEach(order -> assertAttributeLoaded(order::getOrderLines));
+        }
+
+        @Test
         void testAdhocLoadGraph_Ok() {
             var johnDoe = personRepository.findByLastnameAdhocLoadGraph("Doe");
             TestTransaction.end();

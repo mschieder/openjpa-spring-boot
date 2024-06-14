@@ -3,12 +3,14 @@ package io.github.mschieder.spring.boot.openjpa.entitygraph;
 import jakarta.persistence.AttributeNode;
 import jakarta.persistence.Subgraph;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class SimpleAttributeNode<T> implements AttributeNode<T> {
 
     private String attributeName;
+    private final Map<Class, Subgraph> subGraphs = new LinkedHashMap<>();
 
     public SimpleAttributeNode(String attributeName) {
         this.attributeName = attributeName;
@@ -21,8 +23,13 @@ public class SimpleAttributeNode<T> implements AttributeNode<T> {
 
     @Override
     public Map<Class, Subgraph> getSubgraphs() {
-        return Map.of();
+        return Map.copyOf(subGraphs);
     }
+
+    public void addSubGraph(Class<?> aClass, Subgraph subgraph) {
+        subGraphs.put(aClass, subgraph);
+    }
+
 
     @Override
     public Map<Class, Subgraph> getKeySubgraphs() {

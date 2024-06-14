@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -17,13 +18,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
 @NoArgsConstructor
-@NamedEntityGraph(name = "Person.adr", attributeNodes = @NamedAttributeNode("address"))
+@NamedEntityGraph(name = "Person.adr",
+        attributeNodes = @NamedAttributeNode("address"))
+@NamedEntityGraph(name = "Person.adr.sub",
+        attributeNodes = {
+                @NamedAttributeNode("address"),
+                @NamedAttributeNode(value = "orders", subgraph = "sub")
+        },
+        subgraphs = @NamedSubgraph(name = "sub", attributeNodes = @NamedAttributeNode(value = "orderLines")))
 public class Person {
 
     public Person(String firstname, String lastname) {
@@ -45,7 +53,7 @@ public class Person {
     @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private List<ShoppingOrder> orders = new ArrayList<>();
+    private Set<ShoppingOrder> orders = new HashSet<>();
 
     public Person addOrder(ShoppingOrder order) {
         orders.add(order);

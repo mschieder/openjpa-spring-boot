@@ -4,6 +4,7 @@ import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.metamodel.EntityType;
 
 import java.util.ArrayList;
@@ -37,11 +38,28 @@ public class EntityGraphFactory {
     private void scanNamedEntityGraph(NamedEntityGraph namedEntityGraph, Class<?> javaType) {
         var name = namedEntityGraph.name();
 
-        var entityGraph = new SimpleEntityGraph<>(javaType, name);
-
-        Stream.of(namedEntityGraph.attributeNodes()).map(NamedAttributeNode::value)
-                .forEach(entityGraph::addAttributeNodes);
+        var entityGraph = new SimpleEntityGraph<>(javaType, name, entityManagerFactory);
+        scanAttributeNodes(namedEntityGraph.attributeNodes(), entityGraph, namedEntityGraph);
         addEntityGraphInternal(name, entityGraph);
+    }
+
+    private void scanAttributeNodes(NamedAttributeNode[] nodes, AbstractGraph<?> parent, NamedEntityGraph namedEntityGraph) {
+        Stream.of(nodes).forEach(attributeNode -> {
+            if (!attributeNode.subgraph().isBlank()) {
+                var namedSubGraph = findSubGraph(attributeNode.subgraph(), namedEntityGraph)
+                        .orElseThrow(() -> new IllegalArgumentException("unknown subgraph: " + attributeNode.subgraph()));
+
+                SimpleSubgraph<?> subGraph = (SimpleSubgraph<?>) parent.addSubgraph(attributeNode.value());
+                scanAttributeNodes(namedSubGraph.attributeNodes(), subGraph, namedEntityGraph);
+            } else {
+                parent.addAttributeNodes(attributeNode.value());
+            }
+        });
+    }
+
+
+    private Optional<NamedSubgraph> findSubGraph(String subGraphName, NamedEntityGraph namedEntityGraph) {
+        return Stream.of(namedEntityGraph.subgraphs()).filter(subGraph -> subGraphName.equals(subGraph.name())).findFirst();
     }
 
     public Optional<SimpleEntityGraph<?>> findEntityGraph(String name) {
@@ -49,7 +67,7 @@ public class EntityGraphFactory {
     }
 
     public <T> EntityGraph<T> createEntityGraph(Class<T> rootType) {
-        return new SimpleEntityGraph<>(rootType);
+        return new SimpleEntityGraph<>(rootType, entityManagerFactory);
     }
 
     public List<EntityGraph<?>> getEntityGraphs(Class<?> entityClass) {

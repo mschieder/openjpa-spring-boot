@@ -17,8 +17,14 @@ public abstract class TestBase {
     void givenJohnDoe() {
         personRepository.deleteAll();
         var person = new Person("John", "Doe")
-                .addOrder(new ShoppingOrder(BigDecimal.TEN, "EUR"))
-                .addOrder(new ShoppingOrder(BigDecimal.ONE, "USD"));
+                .addOrder(new ShoppingOrder(BigDecimal.TEN, "EUR")
+                        .addOrderLine(new OrderLine(1, "Fake eyelashes"))
+                        .addOrderLine(new OrderLine(2, "Deluxe edition box sets"))
+                )
+                .addOrder(new ShoppingOrder(BigDecimal.ONE, "USD")
+                        .addOrderLine(new OrderLine(3, "Sunglasses"))
+                        .addOrderLine(new OrderLine(4, "Teeth whitener"))
+                );
         person.setAddress(new Address("Amphitheatre Parkway", "Mountain View"));
         personRepository.saveAndFlush(person);
     }

@@ -1,14 +1,12 @@
 package io.github.mschieder.spring.boot.openjpa.entitygraph;
 
-import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import org.apache.openjpa.persistence.FetchPlan;
 import org.apache.openjpa.persistence.OpenJPAPersistence;
 import org.apache.openjpa.persistence.OpenJPAQuery;
 import org.apache.openjpa.persistence.jdbc.JDBCFetchPlan;
-
-import java.util.Objects;
 
 public class EntityGraphQuery {
 
@@ -46,10 +44,14 @@ public class EntityGraphQuery {
             defaultFetchGraphFetchPlanCreator.addToFetchPlan(fetchPlan);
         }
 
-        entityGraph.getAttributeNodes().stream()
-                .map(AttributeNode::getAttributeName)
-                .filter(Objects::nonNull)
-                .forEach(name -> fetchPlan.addField(entityGraph.getEntityRootType(), name));
+        visitAttributeNodes(entityGraph, entityGraph.getEntityRootType(), fetchPlan);
+    }
+
+    private void visitAttributeNodes(AbstractGraph<?> graph, Class<?> rootType, FetchPlan fetchPlan) {
+        graph.getAttributeNodes().forEach(attributeNode -> {
+            fetchPlan.addField(rootType, attributeNode.getAttributeName());
+            attributeNode.getSubgraphs().forEach((k, v) -> visitAttributeNodes((AbstractGraph<?>) v, k, fetchPlan));
+        });
     }
 
 }

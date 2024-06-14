@@ -38,6 +38,10 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     @Query(value = "select p from Person p where p.lastname = :lastname")
     Person findByLastnameNamedFetchGraph(String lastname);
 
+    @EntityGraph("Person.adr.sub")
+    @Query(value = "select p from Person p where p.lastname = :lastname")
+    Person findByLastnameNamedFetchGraphWithSubGraph(String lastname);
+
     @EntityGraph(attributePaths = "address", type = EntityGraph.EntityGraphType.LOAD)
     @Query(value = "select p from Person p where p.lastname = :lastname")
     Person findByLastnameAdhocLoadGraph(String lastname);
